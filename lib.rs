@@ -128,15 +128,14 @@ mod mintable {
 
         // pure rust below
         fn _mint(&mut self, to: AccountId, value: Balance) {
-            let minter = self.env().caller();
-            assert_eq!(minter, *self.minter);
-            assert_ne!(value, 0);
-
-            let new_supply = *self.total_supply + value;
-            self.total_supply.set(new_supply);
+            let caller = self.env().caller();
+            assert_eq!(caller, *self.minter);
 
             let to_balance = self.balance_of_or_zero(&to);
             self.balances.insert(to.clone(), to_balance + value);
+
+            let new_supply = *self.total_supply + value;
+            self.total_supply.set(new_supply);
 
             self.env().emit_event(Transfer {
                 from: None,
@@ -146,13 +145,12 @@ mod mintable {
         }
 
         fn _burn(&mut self, from: AccountId, value: Balance) {
-            assert!(value > 0);
             let from_balance = self.balance_of_or_zero(&from);
             assert!(from_balance >= value, "no enough balance to burn");
             self.balances.insert(from.clone(), from_balance - value);
 
-            let total_supply = *self.total_supply;
-            self.total_supply.set(total_supply - value);
+            let new_supply = *self.total_supply - value;
+            self.total_supply.set(new_supply);
 
             self.env().emit_event(Transfer {
                 from: Some(from),
