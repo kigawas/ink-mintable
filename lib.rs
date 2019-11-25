@@ -1,8 +1,7 @@
 #![feature(proc_macro_hygiene)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_core::memory::string::String;
-use ink_core::storage;
+use ink_core::{memory::string::String, storage};
 use ink_lang2 as ink;
 
 #[cfg(feature = "ink-as-dependency")]
@@ -61,6 +60,12 @@ mod mintable {
         }
 
         // Read
+        #[ink(message)]
+        fn account_id(&self) -> AccountId {
+            // prepare for API change: address() -> account_id()
+            self.env().address()
+        }
+
         #[ink(message)]
         fn name(&self) -> String {
             self.name.clone()
@@ -211,6 +216,7 @@ mod mintable {
             let name = String::from("BTC");
             let mut mintable = Mintable::new(name.clone());
             assert_eq!(mintable.name(), name);
+            assert_ne!(mintable.account_id(), AccountId::default());
 
             let account = AccountId::from([1u8; 32]);
             // assert_eq!(mintable.mint(account, 1), true);
